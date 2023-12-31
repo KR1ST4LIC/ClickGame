@@ -1,0 +1,4 @@
+.idea
+config
+/db/dbdata/
+/db/docker-entrypoint-initdb.d/
