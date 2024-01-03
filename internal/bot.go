@@ -26,7 +26,7 @@ func Start(ctx context.Context, bot *tgbotapi.BotAPI) {
 		go func(update tgbotapi.Update) {
 			if update.Message != nil {
 
-				//ParsingNewUpdateMsg(update, bot, database)
+				ParsingNewUpdateMsg(update, bot)
 				return
 			}
 

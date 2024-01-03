@@ -1,8 +1,15 @@
 package internal
 
-//func ParsingNewUpdateMsg(update tgbotapi.Update, bot *tgbotapi.BotAPI, database *sql.DB) {
-//	user.ParsingUserMessage(update, bot, database)
-//}
+import (
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+
+	"click-game/internal/handlers/user"
+)
+
+func ParsingNewUpdateMsg(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	user.ParsingUserMessage(update, bot)
+}
+
 //
 //func ParsingNewUpdateCbd(bot *tgbotapi.BotAPI, update tgbotapi.Update, database *sql.DB) {
 //	cbd := strings.Split(update.CallbackData(), "/")
