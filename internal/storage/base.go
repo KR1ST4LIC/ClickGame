@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // PGStorage is a limit storage
@@ -10,7 +10,7 @@ type PGStorage struct {
 }
 
 // NewStorage returns new PGStorage
-func NewStorage(db *pgxpool.Pool) *PGStorage {
+func NewStorage(db *pgxpool.Pool) Storage {
 	return &PGStorage{
 		db: db,
 	}

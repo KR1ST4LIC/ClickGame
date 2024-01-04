@@ -23,7 +23,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to load database", zap.Error(err))
 	}
-	_ = db
+	strg := storage.NewStorage(db)
+	_ = strg
 
 	time.Sleep(time.Minute)
 }

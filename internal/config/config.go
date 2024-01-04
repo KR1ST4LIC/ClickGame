@@ -10,7 +10,6 @@ import (
 )
 
 type Config struct {
-	LogLevel    string `yaml:"log_level"`
 	MetricsPort string `yaml:"metrics_port"`
 
 	BotToken string `yaml:"bot_token"`

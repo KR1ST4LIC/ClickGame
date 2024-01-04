@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/pressly/goose/v3"
@@ -34,12 +34,7 @@ func UploadDataBase(ctx context.Context, dbCfg *config.DBConnConfig) (*pgxpool.P
 		dbCfg.DBName,
 	)
 
-	repCfg, err := pgxpool.ParseConfig(connString)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse data base config")
-	}
-
-	pool, err := pgxpool.ConnectConfig(ctx, repCfg)
+	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create conn pool")
 	}
