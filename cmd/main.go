@@ -2,31 +2,28 @@ package main
 
 import (
 	"context"
-	"log"
-	"os"
+	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 
-	"click-game/internal"
+	"click-game/internal/config"
+	"click-game/internal/log"
+	"click-game/internal/storage"
 )
 
 func main() {
 	ctx := context.Background()
 
-	err := godotenv.Load("config/.env")
+	cfg, err := config.InitConfig()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Failed to load config", zap.Error(err))
 	}
 
-	token := os.Getenv("TOKEN")
-
-	bot, err := tgbotapi.NewBotAPI(token)
+	db, err := storage.UploadDataBase(ctx, cfg.DBConnConfig)
 	if err != nil {
-		log.Panic(err)
+		log.Fatal("Failed to load database", zap.Error(err))
 	}
+	_ = db
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	internal.Start(ctx, bot)
+	time.Sleep(time.Minute)
 }

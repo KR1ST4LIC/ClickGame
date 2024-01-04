@@ -1,9 +1,9 @@
-package internal
+package cringe
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
-	"click-game/internal/handlers/user"
+	"click-game/internal/cringe/handlers/user"
 )
 
 func ParsingNewUpdateMsg(update tgbotapi.Update, bot *tgbotapi.BotAPI) {

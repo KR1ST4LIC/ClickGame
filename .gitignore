@@ -1,4 +1,4 @@
-.idea
-config
-/db/dbdata/
-/db/docker-entrypoint-initdb.d/
+/.idea
+/config
+/db/local/clickgame/dbdata/
+/db/local/clickgame/docker-entrypoint-initdb.d/
