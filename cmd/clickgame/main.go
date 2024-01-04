@@ -8,6 +8,7 @@ import (
 
 	"click-game/internal/config"
 	"click-game/internal/log"
+	"click-game/internal/manager"
 	"click-game/internal/storage"
 )
 
@@ -24,7 +25,12 @@ func main() {
 		log.Fatal("Failed to load database", zap.Error(err))
 	}
 	strg := storage.NewStorage(db)
-	_ = strg
+
+	manager := manager.NewManager(strg)
+	_ = manager
+	manager.Run(ctx, cfg.BotToken)
+
+	ctx.Done()
 
 	time.Sleep(time.Minute)
 }
