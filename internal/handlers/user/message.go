@@ -1,39 +1,10 @@
 package user
 
 import (
-	"fmt"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func ParsingUserMessage(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
-	text := update.Message.Text
-	userID := update.Message.From.ID
-	//msgID := update.Message.MessageID
-	//chatID := update.Message.Chat.ID
-
-	switch text {
-	case "/start":
-		msg := startMsg(userID)
-		bot.Send(msg)
-
-	case "🖱 кликать 🖱":
-		msg := clickIKB(userID)
-		_, err := bot.Send(msg)
-		if err != nil {
-			fmt.Println(err)
-		}
-	case "💶бустер автокликов💶":
-		/*if статус бустера == активен{
-			msg := tgbotapi.NewMessage(userID, "У вас уже включен бустер")
-		} else {
-			msg := tgbotapi.NewMessage(userID, "Бустер включен")
-			// в редиску пихать то, что в след раз он получит x20 монет
-		}*/
-	}
-}
-
-func startMsg(userID int64) tgbotapi.MessageConfig {
+func StartMsg(userID int64) tgbotapi.MessageConfig {
 	msg := tgbotapi.NewMessage(userID, "Хорошей игры!")
 	msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(
 		tgbotapi.NewKeyboardButtonRow(
@@ -52,7 +23,7 @@ func startMsg(userID int64) tgbotapi.MessageConfig {
 	return msg
 }
 
-func clickIKB(userID int64) tgbotapi.MessageConfig {
+func ClickIKB(userID int64) tgbotapi.MessageConfig {
 	markup := tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("x1", "getmoney?1"),

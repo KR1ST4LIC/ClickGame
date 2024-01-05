@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/pkg/errors"
 
 	"click-game/internal/handlers/user"
 	"click-game/internal/storage"
@@ -51,25 +52,102 @@ func (m *Manager) handleBotUpdates(ctx context.Context, update tgbotapi.Update, 
 		if update.Message.Text == "/start" {
 			k, err := m.storage.ExistUser(ctx, update.Message.From.ID)
 			if err != nil {
-				fmt.Println(errors.Wrap(err, "failed exist user"))
+				fmt.Println(err)
 			}
 			b = k
 		}
 		if b {
-			user.ParsingUserMessage(update, bot)
+			m.ParsingUserMessage(ctx, update, bot)
 			return
 		} else {
 			err := m.storage.InsertUser(ctx, update.Message.From.ID, update.Message.From.FirstName)
+			//инсертнуть в ван сек
 			if err != nil {
 				fmt.Println(err)
 			}
-			user.ParsingUserMessage(update, bot)
+			err = m.storage.InsertMinUser(ctx, update.Message.From.ID)
+			if err != nil {
+				fmt.Println(err)
+			}
+			m.ParsingUserMessage(ctx, update, bot)
 			return
 		}
 	}
 
 	if update.CallbackQuery != nil {
-		//user.ParsingNewUpdateCbd(bot, update)
+		m.ParsingUserCbd(ctx, update, bot)
 		return
+	}
+}
+
+func (m *Manager) GetUserStatus(ctx context.Context, userID int64) string {
+	status, err := m.storage.GetStatus(ctx, userID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return status
+}
+
+func (m *Manager) ParsingUserMessage(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	text := update.Message.Text
+	userID := update.Message.From.ID
+
+	switch text {
+	case "/start":
+		msg := user.StartMsg(userID)
+		_, err := bot.Send(msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+	case "🖱 кликать 🖱":
+		msg := user.ClickIKB(userID)
+		_, err := bot.Send(msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+	case "💶бустер автокликов💶":
+		status := m.GetUserStatus(ctx, userID)
+		if status == "boost" {
+			msg := tgbotapi.NewMessage(userID, "у вас уже включен бустер")
+			_, err := bot.Send(msg)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			m.storage.UpdateStatus(ctx, userID, "boost")
+			msg := tgbotapi.NewMessage(userID, "✅бустер афк кликов включен!✅")
+			_, err := bot.Send(msg)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+		/*else {
+			msg := tgbotapi.NewMessage(userID, "Бустер включен")
+			// в редиску пихать то, что в след раз он получит x20 монет
+		}*/
+	}
+}
+
+func (m *Manager) ParsingUserCbd(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.BotAPI) {
+	cbd := strings.Split(update.CallbackData(), "?")
+
+	switch cbd[0] {
+	case "getmoney":
+		multi, _ := strconv.Atoi(cbd[1])
+		click, err := m.storage.GetMulti(ctx, update.CallbackQuery.From.ID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		balance := float32(multi) * click.Multiplier * float32(click.Click)
+		err = m.storage.InsertMin(ctx, update.CallbackQuery.From.ID, int64(balance))
+		if err != nil {
+			fmt.Println(err)
+		}
+		msg := tgbotapi.NewMessage(update.CallbackQuery.From.ID, "Монеты были начислены")
+		_, err = bot.Send(msg)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 	}
 }

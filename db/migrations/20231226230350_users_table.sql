@@ -15,10 +15,16 @@ CREATE TABLE users.user
     "status"      text   default user
 );
 CREATE INDEX balance_index ON users.user (balance);
+CREATE TABLE users.sec_user
+(
+    "tg_id" bigint UNIQUE,
+    "addbal" bigint default 0
+);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS users.sec_user;
 DROP TABLE IF EXISTS users.user;
 
 DROP SCHEMA users CASCADE;
