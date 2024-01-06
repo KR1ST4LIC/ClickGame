@@ -2,7 +2,6 @@ package storage
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/pkg/errors"
@@ -141,7 +140,6 @@ func (s *PGStorage) InsertMin(ctx context.Context, userID int64, money int64) er
 const insertMinUserQuery = `INSERT INTO users.sec_user (tg_id) VALUES ($1);`
 
 func (s *PGStorage) InsertMinUser(ctx context.Context, userID int64) error {
-	fmt.Println("хуй")
 	_, err := s.db.Exec(ctx,
 		insertMinUserQuery,
 		userID,
@@ -151,4 +149,74 @@ func (s *PGStorage) InsertMinUser(ctx context.Context, userID int64) error {
 	}
 
 	return nil
+}
+
+const getAddBalQuery = `SELECT tg_id, addbal FROM users.sec_user WHERE addbal > 0;`
+const setNilAddBalanceQuery = `UPDATE users.sec_user SET addbal = 0;`
+const insertMinBalQuery = `UPDATE users.user SET balance = balance + ($1) WHERE tg_id = ($2);`
+
+func (s *PGStorage) GetAddBal(ctx context.Context) ([]int64, int, error) {
+	rows, err := s.db.Query(ctx,
+		getAddBalQuery,
+	)
+	if err != nil {
+		return nil, 0, errors.Wrap(err, "failed get add bal")
+	}
+	_, err = s.db.Exec(ctx,
+		setNilAddBalanceQuery)
+	if err != nil {
+		return nil, 0, errors.Wrap(err, "failed get add bal")
+	}
+	defer rows.Close()
+
+	addBal, err := getBalance(rows)
+	if err != nil {
+		return nil, 0, err
+	}
+	for i := 0; i < addBal.Count; i++ {
+		_, err = s.db.Exec(
+			ctx,
+			insertMinBalQuery,
+			addBal.AddBal[i],
+			addBal.UserID[i],
+		)
+		if err != nil {
+			return nil, 0, errors.Wrap(err, "failed get add bal")
+		}
+	}
+	return addBal.UserID, addBal.Count, nil
+}
+
+func getBalance(rows pgx.Rows) (*entity.AddBal, error) {
+	addBal := &entity.AddBal{}
+	var user, balance int64
+	num := 1
+	for rows.Next() {
+		if err := rows.Scan(
+			&user,
+			&balance,
+		); err != nil {
+			return nil, errors.Wrap(err, "scan user from row")
+		}
+		addBal.AddBal = append(addBal.AddBal, balance)
+		addBal.UserID = append(addBal.UserID, user)
+		num++
+	}
+	addBal.Count = num - 1
+	return addBal, nil
+}
+
+const getUserBalanceQuery = `SELECT balance FROM users.user WHERE tg_id = ($1);`
+
+func (s *PGStorage) GetUserBalance(ctx context.Context, userID int64) (int64, error) {
+	var money int64
+	err := s.db.QueryRow(ctx,
+		getUserBalanceQuery,
+		userID,
+	).Scan(&money)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed get user money")
+	}
+
+	return money, nil
 }

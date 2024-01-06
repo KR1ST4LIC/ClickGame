@@ -19,6 +19,9 @@ func StartMsg(userID int64) tgbotapi.MessageConfig {
 			tgbotapi.NewKeyboardButton("💰 реклама 💰"),
 			tgbotapi.NewKeyboardButton("🏠 кланы 🏠"),
 		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton("💶баланс💶"),
+		),
 	)
 	return msg
 }

@@ -10,3 +10,12 @@ type Clicks struct {
 	Click      int
 	Afk        int
 }
+
+type AddBal struct {
+	UserID []int64
+	AddBal []int64
+	Count  int
+}
+
+type CantAdd struct {
+}

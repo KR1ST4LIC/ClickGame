@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 
@@ -35,15 +36,14 @@ func (m *Manager) Run(ctx context.Context, token string) {
 	u.Timeout = 60
 
 	updates := bot.GetUpdatesChan(u)
+
+	go m.GetAllAddBal(ctx, bot)
+
 	for update := range updates {
 		localUpdate := update
 		m.handleBotUpdates(ctx, localUpdate, bot)
 	}
 }
-
-//for {
-//m.storage.GetUser()
-//}
 
 func (m *Manager) handleBotUpdates(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 	if update.Message != nil {
@@ -57,11 +57,11 @@ func (m *Manager) handleBotUpdates(ctx context.Context, update tgbotapi.Update, 
 			b = k
 		}
 		if b {
+			m.storage.GetAddBal(ctx)
 			m.ParsingUserMessage(ctx, update, bot)
 			return
 		} else {
 			err := m.storage.InsertUser(ctx, update.Message.From.ID, update.Message.From.FirstName)
-			//инсертнуть в ван сек
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -125,6 +125,17 @@ func (m *Manager) ParsingUserMessage(ctx context.Context, update tgbotapi.Update
 			msg := tgbotapi.NewMessage(userID, "Бустер включен")
 			// в редиску пихать то, что в след раз он получит x20 монет
 		}*/
+	case "💶баланс💶":
+		balance, err := m.storage.GetUserBalance(ctx, userID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		money := strconv.FormatInt(balance, 10)
+		msg := tgbotapi.NewMessage(userID, money)
+		_, err = bot.Send(msg)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 }
 
@@ -143,11 +154,24 @@ func (m *Manager) ParsingUserCbd(ctx context.Context, update tgbotapi.Update, bo
 		if err != nil {
 			fmt.Println(err)
 		}
-		msg := tgbotapi.NewMessage(update.CallbackQuery.From.ID, "Монеты были начислены")
-		_, err = bot.Send(msg)
+	}
+}
+
+func (m *Manager) GetAllAddBal(ctx context.Context, bot *tgbotapi.BotAPI) {
+	for {
+		fmt.Println(time.Now())
+		userID, count, err := m.storage.GetAddBal(ctx)
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
-
+		for i := 0; i < count; i++ {
+			msg := tgbotapi.NewMessage(userID[i], "Монеты выданы")
+			_, err = bot.Send(msg)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+		time.Sleep(time.Minute)
 	}
 }
